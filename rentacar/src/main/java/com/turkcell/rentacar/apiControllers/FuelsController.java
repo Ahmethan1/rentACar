@@ -1,10 +1,13 @@
 package com.turkcell.rentacar.apiControllers;
 
 import com.turkcell.rentacar.business.abstracts.FuelServie;
-import com.turkcell.rentacar.business.dtos.requests.CreateFuelRequest;
-import com.turkcell.rentacar.business.dtos.requests.UpdateFuelRequest;
-import com.turkcell.rentacar.business.dtos.responses.CreatedFuelResponse;
-import com.turkcell.rentacar.business.dtos.responses.UpdatedFuelResponse;
+import com.turkcell.rentacar.business.dtos.requests.fuels.CreateFuelRequest;
+import com.turkcell.rentacar.business.dtos.requests.fuels.UpdateFuelRequest;
+import com.turkcell.rentacar.business.dtos.responses.fuels.CreatedFuelResponse;
+import com.turkcell.rentacar.business.dtos.responses.fuels.DeletedFuelResponse;
+import com.turkcell.rentacar.business.dtos.responses.fuels.GotFuelResponse;
+import com.turkcell.rentacar.business.dtos.responses.fuels.UpdatedFuelResponse;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,19 +24,19 @@ public class FuelsController {
 
     @PostMapping("/createFuel")
     @ResponseStatus(HttpStatus.CREATED)
-    public CreatedFuelResponse add(@RequestBody CreateFuelRequest createFuelRequest) {
+    public CreatedFuelResponse add(@Valid @RequestBody CreateFuelRequest createFuelRequest) {
         return fuelServie.add(createFuelRequest);
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public CreatedFuelResponse getById(@PathVariable int id) {
+    public GotFuelResponse getById(@Valid @PathVariable int id) {
         return fuelServie.getById(id);
     }
 
     @GetMapping("/allFuels")
     @ResponseStatus(HttpStatus.OK)
-    public List<CreatedFuelResponse> getAll() {
+    public List<GotFuelResponse> getAll() {
         return fuelServie.getAll();
     }
 
@@ -43,8 +46,10 @@ public class FuelsController {
         return ResponseEntity.ok(fuel);
     }
 
+
     @PutMapping("/editFuels/{id}")
-    public ResponseEntity<UpdatedFuelResponse> editFuel(@PathVariable int id, @RequestBody UpdateFuelRequest updateFuelRequest) {
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<UpdatedFuelResponse> editFuel(@Valid @PathVariable int id, @Valid @RequestBody UpdateFuelRequest updateFuelRequest) {
         UpdatedFuelResponse updatedFuelResponse = fuelServie.editFuel(id, updateFuelRequest);
         return ResponseEntity.ok(updatedFuelResponse);
     }

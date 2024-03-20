@@ -1,10 +1,13 @@
 package com.turkcell.rentacar.apiControllers;
 
 import com.turkcell.rentacar.business.abstracts.ModelService;
-import com.turkcell.rentacar.business.dtos.requests.CreateModelRequest;
-import com.turkcell.rentacar.business.dtos.requests.UpdateModelRequest;
-import com.turkcell.rentacar.business.dtos.responses.CreatedModelResponse;
-import com.turkcell.rentacar.business.dtos.responses.UpdatedModelResponse;
+import com.turkcell.rentacar.business.dtos.requests.models.CreateModelRequest;
+import com.turkcell.rentacar.business.dtos.requests.models.UpdateModelRequest;
+import com.turkcell.rentacar.business.dtos.responses.models.CreatedModelResponse;
+import com.turkcell.rentacar.business.dtos.responses.models.DeletedModelResponse;
+import com.turkcell.rentacar.business.dtos.responses.models.GotModelResponse;
+import com.turkcell.rentacar.business.dtos.responses.models.UpdatedModelResponse;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,20 +24,20 @@ public class ModelsController {
 
     @PostMapping("/createModel")
     @ResponseStatus(HttpStatus.CREATED)
-    public CreatedModelResponse add(@RequestBody CreateModelRequest createModelRequest) {
+    public CreatedModelResponse add(@Valid  @RequestBody CreateModelRequest createModelRequest) {
         return modelService.add(createModelRequest);
 
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public CreatedModelResponse getById(@PathVariable int id) {
+    public GotModelResponse getById(@PathVariable int id) {
         return modelService.getById(id);
     }
 
     @GetMapping("/allModels")
     @ResponseStatus(HttpStatus.OK)
-    public List<CreatedModelResponse> getAll() {
+    public List<GotModelResponse> getAll() {
         return modelService.getAll();
     }
 
@@ -45,7 +48,9 @@ public class ModelsController {
     }
 
     @PutMapping("/editModel/{id}")
-    public ResponseEntity<UpdatedModelResponse> editFuel(@PathVariable int id, @RequestBody UpdateModelRequest updateModelRequest) {
+    @ResponseStatus(HttpStatus.OK)
+
+    public ResponseEntity<UpdatedModelResponse> editFuel(@Valid @PathVariable int id,@Valid @RequestBody UpdateModelRequest updateModelRequest) {
         UpdatedModelResponse updatedModelResponse = modelService.editModel(id, updateModelRequest);
         return ResponseEntity.ok(updatedModelResponse);
     }

@@ -1,10 +1,14 @@
 package com.turkcell.rentacar.business.concretes;
 
 import com.turkcell.rentacar.business.abstracts.BrandService;
-import com.turkcell.rentacar.business.dtos.requests.CreateBrandRequest;
-import com.turkcell.rentacar.business.dtos.requests.UpdateBrandRequest;
-import com.turkcell.rentacar.business.dtos.responses.CreatedBrandResponse;
-import com.turkcell.rentacar.business.dtos.responses.UpdatedBrandResponse;
+import com.turkcell.rentacar.business.dtos.requests.brands.CreateBrandRequest;
+import com.turkcell.rentacar.business.dtos.requests.brands.UpdateBrandRequest;
+import com.turkcell.rentacar.business.dtos.responses.brands.CreatedBrandResponse;
+import com.turkcell.rentacar.business.dtos.responses.brands.DeletedBrandResponse;
+import com.turkcell.rentacar.business.dtos.responses.brands.GotBrandResponse;
+import com.turkcell.rentacar.business.dtos.responses.brands.UpdatedBrandResponse;
+import com.turkcell.rentacar.business.rules.BrandBusinessRules;
+import com.turkcell.rentacar.core.utilities.exceptions.types.BusinessException;
 import com.turkcell.rentacar.core.utilities.mapping.ModelMapperService;
 import com.turkcell.rentacar.dataAccess.abstracts.BrandRepository;
 import com.turkcell.rentacar.entities.concretes.Brand;
@@ -21,9 +25,11 @@ import java.util.stream.Collectors;
 public class BrandManager implements BrandService {
     private BrandRepository brandRepository;
     private ModelMapperService modelMapperService;
+    private BrandBusinessRules brandBusinessRules;
 
     @Override
     public CreatedBrandResponse add(CreateBrandRequest createBrandRequest) {
+        brandBusinessRules.brandNameCanNotBeDuplicated(createBrandRequest.getName());
         Brand brand = this.modelMapperService.forRequest().map(createBrandRequest, Brand.class);
         brand.setCreatedDate(LocalDateTime.now());
         Brand createdBrand = brandRepository.save(brand);
@@ -32,16 +38,17 @@ public class BrandManager implements BrandService {
     }
 
     @Override
-    public CreatedBrandResponse getById(int id) {
+    public GotBrandResponse getById(int id) {
+        brandBusinessRules.brandIdCanNotFound(id);
         Brand brand = this.brandRepository.findById(id).orElse(null);
-        CreatedBrandResponse createdBrandResponse = this.modelMapperService.forResponse().map(brand, CreatedBrandResponse.class);
-        return createdBrandResponse;
+        GotBrandResponse gotBrandResponse = this.modelMapperService.forResponse().map(brand, GotBrandResponse.class);
+        return gotBrandResponse;
     }
 
     @Override
-    public List<CreatedBrandResponse> getAll() {
+    public List<GotBrandResponse> getAll() {
         List<Brand> brands = brandRepository.findAll();
-        return brands.stream().map(brand -> this.modelMapperService.forResponse().map(brand, CreatedBrandResponse.class)).collect(Collectors.toList());
+        return brands.stream().map(brand -> this.modelMapperService.forResponse().map(brand, GotBrandResponse.class)).collect(Collectors.toList());
     }
 
     @Override
@@ -51,20 +58,18 @@ public class BrandManager implements BrandService {
             brandRepository.deleteById(id);
             return true;
         } else {
-            throw new RuntimeException("Id is not found");
+            throw new BusinessException("Id is not found");
         }
     }
 
     @Override
     public UpdatedBrandResponse editBrand(int id, UpdateBrandRequest updateBrandRequest) {
-        Brand updatedBrand = brandRepository.findById(id).orElse(null);
-        if (updatedBrand == null) {
-            return null;
-        }
-        updatedBrand.setName(updateBrandRequest.getName());
-        Brand saveBrand = brandRepository.save(updatedBrand);
-        UpdatedBrandResponse updatedBrandResponse = this.modelMapperService.forResponse().map(saveBrand, UpdatedBrandResponse.class);
-        return updatedBrandResponse;
+        brandBusinessRules.brandIdCanNotFound(id);
+        brandBusinessRules.brandNameCanNotBeDuplicated(updateBrandRequest.getName());
+        Brand brand = this.modelMapperService.forRequest().map(updateBrandRequest,Brand.class);
+        brand.setCreatedDate(LocalDateTime.now());
+        brandRepository.save(brand);
+        return this.modelMapperService.forResponse().map(brand,UpdatedBrandResponse.class);
 
 
     }

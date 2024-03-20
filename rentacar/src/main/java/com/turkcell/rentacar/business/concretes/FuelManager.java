@@ -1,10 +1,14 @@
 package com.turkcell.rentacar.business.concretes;
 
 import com.turkcell.rentacar.business.abstracts.FuelServie;
-import com.turkcell.rentacar.business.dtos.requests.CreateFuelRequest;
-import com.turkcell.rentacar.business.dtos.requests.UpdateFuelRequest;
-import com.turkcell.rentacar.business.dtos.responses.CreatedFuelResponse;
-import com.turkcell.rentacar.business.dtos.responses.UpdatedFuelResponse;
+import com.turkcell.rentacar.business.dtos.requests.fuels.CreateFuelRequest;
+import com.turkcell.rentacar.business.dtos.requests.fuels.UpdateFuelRequest;
+import com.turkcell.rentacar.business.dtos.responses.fuels.CreatedFuelResponse;
+import com.turkcell.rentacar.business.dtos.responses.fuels.DeletedFuelResponse;
+import com.turkcell.rentacar.business.dtos.responses.fuels.GotFuelResponse;
+import com.turkcell.rentacar.business.dtos.responses.fuels.UpdatedFuelResponse;
+import com.turkcell.rentacar.business.rules.FuelBusinessRules;
+import com.turkcell.rentacar.core.utilities.exceptions.types.BusinessException;
 import com.turkcell.rentacar.core.utilities.mapping.ModelMapperService;
 import com.turkcell.rentacar.dataAccess.abstracts.FuelRepository;
 import com.turkcell.rentacar.entities.concretes.Fuel;
@@ -21,9 +25,11 @@ import java.util.stream.Collectors;
 public class FuelManager implements FuelServie {
     private FuelRepository fuelRepository;
     private ModelMapperService modelMapperService;
+    private FuelBusinessRules fuelBusinessRules;
 
     @Override
     public CreatedFuelResponse add(CreateFuelRequest createFuelRequest) {
+        fuelBusinessRules.fuelNameCanNotBeDuplicated(createFuelRequest.getName());
         Fuel fuel = this.modelMapperService.forRequest().map(createFuelRequest, Fuel.class);
         fuel.setCreatedDate(LocalDateTime.now());
         Fuel createFuel = fuelRepository.save(fuel);
@@ -34,16 +40,17 @@ public class FuelManager implements FuelServie {
     }
 
     @Override
-    public CreatedFuelResponse getById(int id) {
+    public GotFuelResponse getById(int id) {
+        fuelBusinessRules.fuelIdCanNotFound(id);
         Fuel fuel = fuelRepository.findById(id).orElse(null);
-        CreatedFuelResponse createdFuelResponse = this.modelMapperService.forResponse().map(fuel, CreatedFuelResponse.class);
-        return createdFuelResponse;
+        GotFuelResponse gotFuelResponse = this.modelMapperService.forResponse().map(fuel, GotFuelResponse.class);
+        return gotFuelResponse;
     }
 
     @Override
-    public List<CreatedFuelResponse> getAll() {
+    public List<GotFuelResponse> getAll() {
         List<Fuel> fuelList = fuelRepository.findAll();
-        return fuelList.stream().map(fuel -> this.modelMapperService.forResponse().map(fuel, CreatedFuelResponse.class)).collect(Collectors.toList());
+        return fuelList.stream().map(fuel -> this.modelMapperService.forResponse().map(fuel, GotFuelResponse.class)).collect(Collectors.toList());
     }
 
     @Override
@@ -53,7 +60,7 @@ public class FuelManager implements FuelServie {
             fuelRepository.deleteById(id);
             return true;
         } else {
-            throw new RuntimeException("Id is not found");
+            throw new BusinessException("Id is not found");
         }
     }
 
